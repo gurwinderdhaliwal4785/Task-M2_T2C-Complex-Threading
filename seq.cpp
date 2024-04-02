@@ -7,7 +7,7 @@ using namespace std;
 using namespace std::chrono; // Added for time measurement
 
 // Function to calculate distance between two points
-double calculateDistance(vector<double>& point1, vector<double>& point2) {
+double calculateDistance(const vector<double>& point1, const vector<double>& point2) {
     double distance = 0;
     for (int i = 0; i < point1.size(); i++) {
         distance += pow((point1[i] - point2[i]), 2);
@@ -15,22 +15,13 @@ double calculateDistance(vector<double>& point1, vector<double>& point2) {
     return sqrt(distance);
 }
 
-// Function to calculate the centroid of a cluster
-vector<double> calculateCentroid(vector<vector<double>>& cluster) {
-    vector<double> centroid(cluster[0].size(), 0);
-    for (int i = 0; i < cluster.size(); i++) {
-        for (int j = 0; j < cluster[i].size(); j++) {
-            centroid[j] += cluster[i][j];
-        }
-    }
-    for (int i = 0; i < centroid.size(); i++) {
-        centroid[i] /= cluster.size();
-    }
-    return centroid;
-}
-
 // Function to implement K-Means clustering algorithm
 void kMeans(vector<vector<double>>& data, int k) {
+    if (data.size() < k) {
+        cerr << "Error: Number of clusters exceeds number of data points." << endl;
+        return;
+    }
+
     vector<vector<double>> centroids;
     for (int i = 0; i < k; i++) {
         centroids.push_back(data[i]);
@@ -61,15 +52,21 @@ void kMeans(vector<vector<double>>& data, int k) {
         vector<int> clusterSizes(k, 0);
         for (int i = 0; i < data.size(); i++) {
             int clusterIndex = clusterAssignment[i];
-            for (int j = 0; j < data[i].size(); j++) {
-                newCentroids[clusterIndex][j] += data[i][j];
+            if (clusterIndex >= 0 && clusterIndex < newCentroids.size()) {
+                for (int j = 0; j < data[i].size(); j++) {
+                    if (j < newCentroids[clusterIndex].size()) {
+                        newCentroids[clusterIndex][j] += data[i][j];
+                    }
+                }
+                clusterSizes[clusterIndex]++;
             }
-            clusterSizes[clusterIndex]++;
         }
 
         for (int i = 0; i < newCentroids.size(); i++) {
-            for (int j = 0; j < newCentroids[i].size(); j++) {
-                newCentroids[i][j] /= clusterSizes[i];
+            if (clusterSizes[i] > 0) {
+                for (int j = 0; j < newCentroids[i].size(); j++) {
+                    newCentroids[i][j] /= clusterSizes[i];
+                }
             }
         }
 
@@ -77,11 +74,13 @@ void kMeans(vector<vector<double>>& data, int k) {
     }
 
     for (int i = 0; i < centroids.size(); i++) {
-        cout << "Cluster " << i + 1 << " centroid: ";
-        for (int j = 0; j < centroids[i].size(); j++) {
-            cout << centroids[i][j] << " ";
+        if (!centroids[i].empty()) {
+            cout << "Cluster " << i + 1 << " centroid: ";
+            for (int j = 0; j < centroids[i].size(); j++) {
+                cout << centroids[i][j] << " ";
+            }
+            cout << endl;
         }
-        cout << endl;
     }
 }
 
