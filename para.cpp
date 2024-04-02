@@ -62,13 +62,26 @@ void kMeansParallel(vector<vector<double>>& data, int k) {
         vector<vector<double>> newCentroids(k);
         vector<int> clusterSizes(k, 0);
         #pragma omp parallel for
+        // for (int i = 0; i < data.size(); i++) {
+        //     int clusterIndex = clusterAssignment[i];
+        //     for (int j = 0; j < data[i].size(); j++) {
+        //         newCentroids[clusterIndex][j] += data[i][j];
+        //     }
+        //     clusterSizes[clusterIndex]++;
+        // }
         for (int i = 0; i < data.size(); i++) {
             int clusterIndex = clusterAssignment[i];
-            for (int j = 0; j < data[i].size(); j++) {
-                newCentroids[clusterIndex][j] += data[i][j];
-            }
-            clusterSizes[clusterIndex]++;
-        }
+            // Add a check for clusterIndex validity
+            if (clusterIndex >= 0 && clusterIndex < newCentroids.size()) {
+                for (int j = 0; j < data[i].size(); j++) {
+                    // Add a check for data[i] size
+                    if (j < newCentroids[clusterIndex].size()) {
+                        newCentroids[clusterIndex][j] += data[i][j];
+                    } 
+                }
+                clusterSizes[clusterIndex]++;
+            } 
+}
 
         for (int i = 0; i < newCentroids.size(); i++) {
             for (int j = 0; j < newCentroids[i].size(); j++) {
@@ -80,7 +93,7 @@ void kMeansParallel(vector<vector<double>>& data, int k) {
     }
 
     for (int i = 0; i < centroids.size(); i++) {
-        cout << "Cluster " << i + 1 << " centroid: ";
+        
         for (int j = 0; j < centroids[i].size(); j++) {
             cout << centroids[i][j] << " ";
         }
